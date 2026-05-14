@@ -30,8 +30,28 @@ def create_db_and_tables() -> None:
         for col_sql in (
             "ALTER TABLE jobs ADD COLUMN degraded_sources TEXT",
             "ALTER TABLE jobs ADD COLUMN clarification_questions TEXT",
+            "ALTER TABLE jobs ADD COLUMN total_cost_usd REAL",
+            "ALTER TABLE jobs ADD COLUMN total_duration_seconds INTEGER",
+            "ALTER TABLE jobs ADD COLUMN cost_breakdown_json TEXT",
         ):
             try:
                 conn.execute(text(col_sql))
             except Exception:
                 pass  # Column already exists — safe to ignore
+
+        # Backfill total_duration_seconds for past completed jobs that have
+        # created_at + completed_at but no recorded duration. Cost can't be
+        # backfilled (no usage.json existed for those runs) but duration is
+        # always computable from timestamps. This is idempotent — once a row
+        # has a non-NULL duration, the WHERE clause skips it.
+        try:
+            conn.execute(text(
+                "UPDATE jobs "
+                "SET total_duration_seconds = "
+                "    CAST((julianday(completed_at) - julianday(created_at)) * 86400 AS INTEGER) "
+                "WHERE total_duration_seconds IS NULL "
+                "  AND completed_at IS NOT NULL "
+                "  AND created_at IS NOT NULL"
+            ))
+        except Exception:
+            pass

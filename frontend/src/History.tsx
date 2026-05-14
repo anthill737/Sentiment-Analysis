@@ -10,6 +10,26 @@ interface JobSummary {
   degraded_sources: string[]
   created_at: string | null
   completed_at: string | null
+  total_cost_usd: number | null
+  total_duration_seconds: number | null
+}
+
+function formatDuration(seconds: number | null | undefined): string {
+  if (seconds == null || seconds < 0) return '—'
+  const s = Math.round(seconds)
+  if (s < 60) return `${s}s`
+  const mins = Math.floor(s / 60)
+  const rem = s % 60
+  if (mins < 60) return `${mins}m ${rem}s`
+  const hrs = Math.floor(mins / 60)
+  const minRem = mins % 60
+  return `${hrs}h ${minRem}m`
+}
+
+function formatUsd(usd: number | null | undefined): string {
+  if (usd == null) return '—'
+  if (usd < 0.01) return '<$0.01'
+  return `$${usd.toFixed(2)}`
 }
 
 interface Props {
@@ -129,10 +149,23 @@ export default function History({ onSelectJob }: Props) {
               <StatusBadge status={job.status} />
             </div>
 
-            {/* Verdict Pill */}
+            {/* Verdict Pill + run stats */}
             {job.status === 'done' && job.verdict && (
-              <div className="mt-2">
+              <div className="mt-2 flex flex-wrap items-center gap-3">
                 <VerdictPill verdict={job.verdict} score={job.score} />
+                {(job.total_duration_seconds != null || job.total_cost_usd != null) && (
+                  <span className="text-xs text-gray-400">
+                    {job.total_duration_seconds != null && (
+                      <>⏱ {formatDuration(job.total_duration_seconds)}</>
+                    )}
+                    {job.total_duration_seconds != null && job.total_cost_usd != null && (
+                      <span className="mx-1.5">·</span>
+                    )}
+                    {job.total_cost_usd != null && (
+                      <>💵 {formatUsd(job.total_cost_usd)}</>
+                    )}
+                  </span>
+                )}
               </div>
             )}
 
