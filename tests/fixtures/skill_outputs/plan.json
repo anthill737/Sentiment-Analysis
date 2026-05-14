@@ -1,0 +1,9 @@
+{
+  "subject": "Monte Carlo simulation tool for RIAs",
+  "time_window": "1y",
+  "angles": ["demand", "competition", "pricing", "niches", "timing", "features"],
+  "queries": [
+    {"angle": "demand", "query": "Monte Carlo simulation tools RIA market size 2024"},
+    {"angle": "competition", "query": "Monte Carlo simulation competitors wealth management software"}
+  ]
+}

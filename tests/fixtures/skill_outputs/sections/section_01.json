@@ -1,0 +1,10 @@
+{
+  "slug": "idea_framing",
+  "number": 1,
+  "title": "Idea framing & hypotheses",
+  "blocks": [
+    {"type": "heading", "level": 2, "text": "Idea framing & hypotheses"},
+    {"type": "paragraph", "text": "Mock idea framing section content for testing."},
+    {"type": "bullet_list", "items": ["Hypothesis H1: strong WTP in $50-150/mo band", "Hypothesis H2: tax-aware withdrawal is a feature gap"]}
+  ]
+}

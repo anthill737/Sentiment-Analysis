@@ -1,0 +1,71 @@
+{
+  "generated_at": "2026-05-01T00:00:00Z",
+  "run_dir": "/mock/run",
+  "subject": "Monte Carlo simulation tool for RIAs",
+  "problem_space": "small RIA financial planning software",
+  "window": "1y",
+  "verdict": {
+    "label": "Worth Exploring",
+    "opportunity_rating": 7.9,
+    "confidence": 0.68,
+    "color": "amber"
+  },
+  "angle_scores": {
+    "demand": {"score": 1.0, "label": "Strong", "takeaway": "Strong demand from underserved SMB RIA segment."},
+    "competition": {"score": 0.45, "label": "Mixed", "takeaway": "Crowded market; differentiation will be hard."},
+    "pricing": {"score": 0.7, "label": "Moderate", "takeaway": "Paid market signal present."},
+    "niches": {"score": 0.8, "label": "Strong", "takeaway": "4 distinct ICP themes surfaced."},
+    "timing": {"score": 0.87, "label": "Strong", "takeaway": "Search interest rising."},
+    "features": {"score": 0.85, "label": "Strong", "takeaway": "6 feature themes with clear MVP scope."}
+  },
+  "tensions": [],
+  "executive": {
+    "slug": "executive",
+    "verdict": {
+      "label": "Worth Exploring",
+      "opportunity_rating": 7.9,
+      "confidence": 0.68,
+      "color": "amber"
+    },
+    "subject": "Monte Carlo simulation tool for RIAs",
+    "generated_at": "2026-05-01T00:00:00Z",
+    "blocks": [
+      {"type": "paragraph", "text": "Worth Exploring verdict for Monte Carlo simulation tool for RIAs."}
+    ]
+  },
+  "sections": [
+    {
+      "slug": "idea_framing",
+      "number": 1,
+      "title": "Idea framing & hypotheses",
+      "blocks": [{"type": "paragraph", "text": "Mock idea framing content."}]
+    },
+    {
+      "slug": "demand_validation",
+      "number": 2,
+      "title": "Demand validation",
+      "blocks": [{"type": "paragraph", "text": "Mock demand validation content."}]
+    },
+    {
+      "slug": "competitive_landscape",
+      "number": 3,
+      "title": "Competitive landscape",
+      "blocks": [{"type": "paragraph", "text": "Mock competitive landscape content."}]
+    }
+  ],
+  "charts": [
+    {"filename": "angles.png", "path": "/mock/run/charts/angles.png"}
+  ],
+  "stats": {
+    "evidence_count": 2,
+    "theme_count": 2,
+    "section_count": 3,
+    "missing_sections": [],
+    "chart_count": 1
+  },
+  "plan": {
+    "subject": "Monte Carlo simulation tool for RIAs",
+    "problem_space": "small RIA financial planning software",
+    "window": "1y"
+  }
+}

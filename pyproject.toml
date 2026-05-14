@@ -1,0 +1,10 @@
+[tool.ruff]
+# Exclude dev-team infrastructure and frontend build artifacts from lint/format.
+exclude = [".devteam", "frontend/node_modules", "frontend/dist"]
+
+[tool.pytest.ini_options]
+# tests/e2e/ contains live-browser tests (pytest-playwright) that start a real
+# server subprocess and launch Chromium. They are run separately (pytest tests/e2e/)
+# because pytest-playwright's sync_api leaves asyncio._running_loop set on the main
+# thread, which breaks asyncio.run() calls in the unit tests that follow.
+addopts = "--ignore=tests/e2e"

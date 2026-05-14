@@ -1,0 +1,10 @@
+{
+  "slug": "competitive_landscape",
+  "number": 3,
+  "title": "Competitive landscape",
+  "blocks": [
+    {"type": "heading", "level": 2, "text": "Competitive landscape"},
+    {"type": "paragraph", "text": "Mock competitive landscape section content for testing."},
+    {"type": "bullet_list", "items": ["eMoney: $400-500/mo enterprise suite", "RightCapital: mid-market, limited tax logic"]}
+  ]
+}

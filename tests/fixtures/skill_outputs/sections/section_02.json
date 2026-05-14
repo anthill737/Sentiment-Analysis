@@ -1,0 +1,10 @@
+{
+  "slug": "demand_validation",
+  "number": 2,
+  "title": "Demand validation",
+  "blocks": [
+    {"type": "heading", "level": 2, "text": "Demand validation"},
+    {"type": "paragraph", "text": "Mock demand validation section content for testing."},
+    {"type": "bullet_list", "items": ["Strong demand signal from advisor community", "Underserved SMB RIA segment"]}
+  ]
+}

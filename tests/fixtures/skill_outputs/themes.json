@@ -1,0 +1,6 @@
+{
+  "themes": [
+    {"name": "demand", "evidence_ids": ["e001"], "summary": "Clear demand from RIAs for affordable Monte Carlo tools"},
+    {"name": "competition", "evidence_ids": ["e002"], "summary": "Limited direct competition in SMB segment"}
+  ]
+}

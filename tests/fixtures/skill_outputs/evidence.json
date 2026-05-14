@@ -1,0 +1,6 @@
+{
+  "evidence_units": [
+    {"id": "e001", "theme": "demand", "content": "Strong demand signal from advisor survey data", "source": "perplexity"},
+    {"id": "e002", "theme": "competition", "content": "Few direct competitors in SMB RIA segment", "source": "xai"}
+  ]
+}
