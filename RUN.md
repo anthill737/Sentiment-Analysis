@@ -54,13 +54,13 @@ Double-click `Start SA Runner.bat`, or run it from PowerShell or cmd:
 
 On the **first launch** the bootstrap script runs automatically. It downloads and installs the Bundled Runtime components — this may take several minutes depending on your internet connection. Subsequent launches skip any components already installed and start in seconds.
 
-When the server is ready, your default browser opens automatically to `http://127.0.0.1:8765/`.
+When the server is ready, your default browser opens automatically to `http://127.0.0.1:8770/`.
 
 ---
 
 ## 4. Verify
 
-1. **Sign-in page loads** — the browser should show the SA Runner sign-in form at `http://127.0.0.1:8765/`.
+1. **Sign-in page loads** — the browser should show the SA Runner sign-in form at `http://127.0.0.1:8770/`.
 2. **Sign in** — enter the App Password you set in `.env`.
 3. **New-job form is visible** — after signing in, the dashboard displays the new-job submission form.
 4. **Settings shows all four providers** — navigate to **Settings** (top-right link) and confirm that all four API key fields are present and configurable:
@@ -97,6 +97,6 @@ Double-click `Stop SA Runner.bat`, or close the **SA Runner — Server** console
 | Symptom | Fix |
 |---|---|
 | Bootstrap fails with a SHA256 mismatch | Delete `%LOCALAPPDATA%\sa-runner\downloads\` and re-run `Start SA Runner.bat` to re-download. |
-| Port 8765 already in use | Run `Stop SA Runner.bat` to stop a previous instance, or restart your machine. |
-| Browser does not open automatically | Navigate to `http://127.0.0.1:8765/` manually. |
+| Port 8770 already in use | Run `Stop SA Runner.bat` to stop a previous instance, or restart your machine. |
+| Browser does not open automatically | Navigate to `http://127.0.0.1:8770/` manually. |
 | Server window shows a Python import error | Ensure you extracted the full ZIP (not just the `.bat` file). The `app\` directory must be present. |
