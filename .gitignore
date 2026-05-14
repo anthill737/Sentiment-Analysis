@@ -33,12 +33,24 @@ __pycache__/
 *.pyo
 *.pyd
 .pytest_cache/
+.ruff_cache/
+.mypy_cache/
 .coverage
 htmlcov/
 *.egg-info/
 build/
 dist/
 !frontend/dist/
+
+# ── Sample / example artifacts ───────────────────────────────────────────────
+# Sample reports and synthesis outputs from past runs that shouldn't ship
+# with the source. Real reports live in %LOCALAPPDATA%\sa-runner\runs\.
+example_*.pdf
+example_*.docx
+example_*.json
+sample_*.pdf
+sample_*.docx
+sample_*.json
 
 # ── Frontend ─────────────────────────────────────────────────────────────────
 node_modules/
