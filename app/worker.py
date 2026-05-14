@@ -143,6 +143,7 @@ _PROVIDER_ENV_MAP: dict[str, str] = {
     "perplexity": "PERPLEXITY_API_KEY",
     "xai": "XAI_API_KEY",
     "fmp": "FMP_API_KEY",
+    "github": "GITHUB_TOKEN",
 }
 
 
@@ -174,7 +175,7 @@ _API_KEY_PATTERN_RE = re.compile(
 
 # Matches Progress Lines from Gather sources.
 _PROGRESS_RE = re.compile(
-    r"^\[(perplexity|xai|trends|fmp)\] \[(\d+)/(\d+)\] angle=(.+)$"
+    r"^\[(perplexity|xai|trends|fmp|github|steam)\] \[(\d+)/(\d+)\] angle=(.+)$"
 )
 
 # Matches Progress Lines from write_sections Step.
@@ -324,6 +325,8 @@ _SCRIPT_FIXTURE: dict[str, str] = {
     "fetch_xai.py": "xai.json",
     "fetch_google_trends.py": "trends.json",
     "fetch_fmp.py": "fmp.json",
+    "fetch_github.py": "github.json",
+    "fetch_steam.py": "steam.json",
     "extract_evidence.py": "evidence.json",
     "cluster_themes.py": "themes.json",
     "score_angles.py": "scores.json",
@@ -338,6 +341,8 @@ _SCRIPT_LOG_TAG: dict[str, str] = {
     "fetch_xai.py": "xai",
     "fetch_google_trends.py": "trends",
     "fetch_fmp.py": "fmp",
+    "fetch_github.py": "github",
+    "fetch_steam.py": "steam",
     "extract_evidence.py": "extract",
     "cluster_themes.py": "cluster",
     "score_angles.py": "score",
@@ -351,7 +356,8 @@ _SCRIPT_LOG_TAG: dict[str, str] = {
 
 # Gather source scripts — emit angle-format Progress Lines for realistic mock output.
 _GATHER_SCRIPTS: frozenset[str] = frozenset(
-    {"fetch_perplexity.py", "fetch_xai.py", "fetch_google_trends.py", "fetch_fmp.py"}
+    {"fetch_perplexity.py", "fetch_xai.py", "fetch_google_trends.py",
+     "fetch_fmp.py", "fetch_github.py", "fetch_steam.py"}
 )
 
 # Angles emitted by mock gather sources so the frontend can show live updates.
@@ -744,6 +750,8 @@ _GATHER_SOURCES: list[tuple[str, str]] = [
     ("xai", "xai.json"),
     ("trends", "trends.json"),
     ("fmp", "fmp.json"),
+    ("github", "github.json"),
+    ("steam", "steam.json"),
 ]
 
 
@@ -758,6 +766,10 @@ def _detect_errored_sources(
     - Checkpoint File is missing or unparseable
     - Checkpoint File has a top-level 'error' key (Error Envelope)
     - Checkpoint File is an empty JSON object {} (no payload written)
+
+    A source whose Checkpoint File has status='skipped' is NOT counted as
+    failed — that's an opt-in fetcher (fmp/github/steam) intentionally
+    sitting this run out.
     """
     errored: list[str] = []
     for (source_name, out_file), rc in zip(_GATHER_SOURCES, gather_results):
@@ -767,6 +779,8 @@ def _detect_errored_sources(
         # Check the checkpoint file for an Error Envelope or missing payload.
         try:
             data = json.loads((run_dir / out_file).read_text(encoding="utf-8"))
+            if data.get("status") == "skipped":
+                continue  # opt-in fetcher, gate flag was false — don't fail
             if "error" in data or not data:
                 errored.append(source_name)
         except Exception:
@@ -1252,12 +1266,43 @@ async def run_job(job_id: str) -> None:
                 api_keys=api_keys,
                 job_id=job_id,
             ),
+            _run_step(
+                cmd=[
+                    runtimes["python"],
+                    str(skill / "scripts" / "fetch_github.py"),
+                    "--plan",
+                    str(run_dir / "plan.json"),
+                    "--out",
+                    str(run_dir / "github.json"),
+                ],
+                log_path=logs / "gather.log",
+                queue=queue,
+                api_keys=api_keys,
+                job_id=job_id,
+            ),
+            _run_step(
+                cmd=[
+                    runtimes["python"],
+                    str(skill / "scripts" / "fetch_steam.py"),
+                    "--plan",
+                    str(run_dir / "plan.json"),
+                    "--out",
+                    str(run_dir / "steam.json"),
+                ],
+                log_path=logs / "gather.log",
+                queue=queue,
+                api_keys=api_keys,
+                job_id=job_id,
+            ),
             return_exceptions=True,
         )
 
         errored_sources = _detect_errored_sources(list(gather_results), run_dir)
 
-        if len(errored_sources) == 4:
+        # The 3 mandatory sources are perplexity, xai, trends. If all 3 of
+        # those errored, gather has effectively no data — fail the job.
+        mandatory_errored = [s for s in errored_sources if s in ("perplexity", "xai", "trends")]
+        if len(mandatory_errored) >= 3:
             msg = f"[gather] all sources failed: {', '.join(errored_sources)}"
             _job_backlogs.setdefault(job_id, []).append(msg)
             _update_job(

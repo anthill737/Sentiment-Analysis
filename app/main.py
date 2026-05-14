@@ -43,7 +43,7 @@ if not _password:
     print("ERROR: APP_PASSWORD is not set or empty in .env", file=sys.stderr)
     sys.exit(1)
 
-PROVIDERS = {"anthropic", "perplexity", "xai", "fmp"}
+PROVIDERS = {"anthropic", "perplexity", "xai", "fmp", "github"}
 
 
 @asynccontextmanager
@@ -184,6 +184,9 @@ class JobPayload(BaseModel):
     focus_areas: str = ""
     include_public_market: bool = False
     tickers: str = ""
+    include_github: bool = False
+    github_code_search: bool = False
+    include_steam: bool = False
 
 
 @app.get("/api/jobs", dependencies=[Depends(require_auth)])
@@ -222,6 +225,9 @@ async def create_job(payload: JobPayload):
         "focus": [s.strip() for s in payload.focus_areas.split(",") if s.strip()],
         "include_fmp": payload.include_public_market,
         "fmp_tickers": [s.strip() for s in payload.tickers.split(",") if s.strip()],
+        "include_github": payload.include_github,
+        "github_code_search": payload.github_code_search,
+        "include_steam": payload.include_steam,
     }
     (run_dir / "payload.json").write_text(
         json.dumps(skill_payload, indent=2), encoding="utf-8"

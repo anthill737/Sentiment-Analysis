@@ -10,6 +10,9 @@ interface FormState {
   focus_areas: string
   include_public_market: boolean
   tickers: string
+  include_github: boolean
+  github_code_search: boolean
+  include_steam: boolean
 }
 
 const REQUIRED_KEYS = ['anthropic', 'perplexity', 'xai'] as const
@@ -18,6 +21,7 @@ const KEY_LABELS: Record<string, string> = {
   perplexity: 'Perplexity',
   xai: 'xAI',
   fmp: 'FMP',
+  github: 'GitHub',
 }
 
 function navigateTo(path: string) {
@@ -32,6 +36,9 @@ export default function NewJobForm({ onJobCreated }: Props) {
     focus_areas: '',
     include_public_market: false,
     tickers: '',
+    include_github: false,
+    github_code_search: false,
+    include_steam: false,
   })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -49,6 +56,7 @@ export default function NewJobForm({ onJobCreated }: Props) {
         }
         const needed = REQUIRED_KEYS.filter((k) => !data[k])
         if (form.include_public_market && !data.fmp) needed.push('fmp')
+        if (form.include_github && form.github_code_search && !data.github) needed.push('github')
         setMissingKeys(needed)
       })
       .catch(() => {
@@ -57,9 +65,9 @@ export default function NewJobForm({ onJobCreated }: Props) {
     return () => {
       cancelled = true
     }
-    // Re-check when the user toggles the FMP-requiring checkbox.
+    // Re-check when the user toggles any opt-in fetcher.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [form.include_public_market])
+  }, [form.include_public_market, form.include_github, form.github_code_search])
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -205,6 +213,55 @@ export default function NewJobForm({ onJobCreated }: Props) {
             />
           </div>
         )}
+
+        <div className="mb-4 flex items-center gap-2">
+          <input
+            id="include_github"
+            type="checkbox"
+            checked={form.include_github}
+            onChange={(e) =>
+              setForm({
+                ...form,
+                include_github: e.target.checked,
+                github_code_search: e.target.checked ? form.github_code_search : false,
+              })
+            }
+            className="h-4 w-4 rounded border-gray-700 bg-gray-800 text-indigo-600"
+          />
+          <label htmlFor="include_github" className="text-sm text-gray-400">
+            Include GitHub repositories
+          </label>
+        </div>
+
+        {form.include_github && (
+          <div className="mb-4 ml-6 flex items-center gap-2">
+            <input
+              id="github_code_search"
+              type="checkbox"
+              checked={form.github_code_search}
+              onChange={(e) =>
+                setForm({ ...form, github_code_search: e.target.checked })
+              }
+              className="h-4 w-4 rounded border-gray-700 bg-gray-800 text-indigo-600"
+            />
+            <label htmlFor="github_code_search" className="text-sm text-gray-400">
+              Also search code (requires GITHUB_TOKEN in API Keys settings)
+            </label>
+          </div>
+        )}
+
+        <div className="mb-4 flex items-center gap-2">
+          <input
+            id="include_steam"
+            type="checkbox"
+            checked={form.include_steam}
+            onChange={(e) => setForm({ ...form, include_steam: e.target.checked })}
+            className="h-4 w-4 rounded border-gray-700 bg-gray-800 text-indigo-600"
+          />
+          <label htmlFor="include_steam" className="text-sm text-gray-400">
+            Include Steam games & reviews (only useful for video-game ideas)
+          </label>
+        </div>
 
         <button
           type="submit"
