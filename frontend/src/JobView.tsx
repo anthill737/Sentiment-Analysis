@@ -23,6 +23,15 @@ interface JobData {
   pursue_reasons?: string[]
   pass_reasons?: string[]
   confidence?: number | null
+  total_cost_usd?: number | null
+  total_duration_seconds?: number | null
+  cost_breakdown?: {
+    total_usd: number
+    total_input_tokens: number
+    total_output_tokens: number
+    total_calls: number
+    by_provider: Record<string, {usd: number; input_tokens: number; output_tokens: number; calls: number}>
+  } | null
 }
 
 interface GatherSourceStatus {
@@ -174,6 +183,86 @@ function VerdictPill({ verdict, score }: { verdict: string; score: number | null
 }
 
 // ---------------------------------------------------------------------------
+// RunStats — total cost + duration with hoverable per-provider breakdown
+// ---------------------------------------------------------------------------
+
+function formatDuration(seconds: number | null | undefined): string {
+  if (seconds == null || seconds < 0) return '—'
+  const s = Math.round(seconds)
+  if (s < 60) return `${s}s`
+  const mins = Math.floor(s / 60)
+  const rem = s % 60
+  if (mins < 60) return `${mins}m ${rem}s`
+  const hrs = Math.floor(mins / 60)
+  const minRem = mins % 60
+  return `${hrs}h ${minRem}m`
+}
+
+function formatUsd(usd: number | null | undefined): string {
+  if (usd == null) return '—'
+  if (usd < 0.01) return '<$0.01'
+  if (usd < 10) return `$${usd.toFixed(2)}`
+  return `$${usd.toFixed(2)}`
+}
+
+function RunStats({
+  durationSec,
+  costUsd,
+  breakdown,
+}: {
+  durationSec: number | null | undefined
+  costUsd: number | null | undefined
+  breakdown:
+    | {
+        by_provider: Record<
+          string,
+          { usd: number; input_tokens: number; output_tokens: number; calls: number }
+        >
+      }
+    | null
+    | undefined
+}) {
+  if (durationSec == null && costUsd == null) return null
+  const providers = breakdown?.by_provider || {}
+  const providerEntries = Object.entries(providers).sort(
+    ([, a], [, b]) => b.usd - a.usd,
+  )
+  return (
+    <div className="flex flex-wrap items-center gap-3 text-sm text-gray-400">
+      {durationSec != null && (
+        <span title="Wall-clock time from job creation to completion">
+          ⏱ {formatDuration(durationSec)}
+        </span>
+      )}
+      {costUsd != null && (
+        <span
+          className="group relative cursor-help"
+          title="Estimated cost based on API token usage (see breakdown below)"
+        >
+          💵 {formatUsd(costUsd)}
+          {providerEntries.length > 0 && (
+            <div
+              className="invisible absolute left-0 top-full z-10 mt-1 min-w-[260px] rounded-lg border border-gray-700 bg-gray-900 p-3 text-xs shadow-lg group-hover:visible"
+            >
+              <div className="mb-1.5 font-semibold text-gray-200">Cost breakdown</div>
+              {providerEntries.map(([provider, b]) => (
+                <div key={provider} className="flex justify-between gap-3 py-0.5">
+                  <span className="capitalize text-gray-300">{provider}</span>
+                  <span className="text-gray-400">
+                    {formatUsd(b.usd)}{' '}
+                    <span className="opacity-60">({b.calls} call{b.calls === 1 ? '' : 's'})</span>
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </span>
+      )}
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
 // AngleScoreChart — custom horizontal bar chart (no external dependency)
 // ---------------------------------------------------------------------------
 
@@ -227,6 +316,11 @@ function ResultsView({ job }: { job: JobData }) {
       {/* Verdict pill + download buttons */}
       <div className="flex flex-wrap items-center gap-4">
         {job.verdict && <VerdictPill verdict={job.verdict} score={job.score} />}
+        <RunStats
+          durationSec={job.total_duration_seconds}
+          costUsd={job.total_cost_usd}
+          breakdown={job.cost_breakdown}
+        />
         <div className="flex flex-wrap gap-2">
           <a
             href={`/api/jobs/${job.id}/download/pdf`}

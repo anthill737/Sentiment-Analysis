@@ -96,6 +96,11 @@ def _job_to_dict(j: Job) -> dict:
         else [],
         "created_at": j.created_at.isoformat() if j.created_at else None,
         "completed_at": j.completed_at.isoformat() if j.completed_at else None,
+        "total_cost_usd": j.total_cost_usd,
+        "total_duration_seconds": j.total_duration_seconds,
+        "cost_breakdown": json.loads(j.cost_breakdown_json)
+        if j.cost_breakdown_json
+        else None,
     }
 
 

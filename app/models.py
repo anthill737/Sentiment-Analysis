@@ -21,6 +21,9 @@ class Job(SQLModel, table=True):
     error_message: Optional[str] = None
     degraded_sources: Optional[str] = None  # JSON list of errored source names
     clarification_questions: Optional[str] = None  # JSON list of strings from planner
+    total_cost_usd: Optional[float] = None
+    total_duration_seconds: Optional[int] = None
+    cost_breakdown_json: Optional[str] = None  # JSON: per-provider {usd, input_tokens, output_tokens, calls}
 
 
 class ApiKey(SQLModel, table=True):

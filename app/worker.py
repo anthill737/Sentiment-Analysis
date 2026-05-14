@@ -8,6 +8,7 @@ import json
 import os
 import re
 import shutil
+import sys
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -18,6 +19,7 @@ from sqlmodel import Session, select
 from app.database import engine
 from app.keys import decrypt_api_key
 from app.models import ApiKey, Job
+from app.pricing import aggregate_usage
 
 # ---------------------------------------------------------------------------
 # Per-job in-memory state - consumed by the SSE endpoint (P1-T7)
@@ -241,6 +243,12 @@ async def _run_real_step(
     the correct behavior for Analyze Phase steps per the pipeline spec.
     """
     env = _make_subprocess_env(api_keys)
+    # Inject SA_RUN_DIR so skill scripts can write usage.json to the run dir
+    # without each one needing a --run-dir flag passed.
+    try:
+        env["SA_RUN_DIR"] = str(log_path.parent.parent)
+    except Exception:
+        pass
     proc = await asyncio.create_subprocess_exec(
         *cmd,
         stderr=asyncio.subprocess.PIPE,
@@ -607,6 +615,46 @@ def _update_job(job_id: str, **kwargs: object) -> None:
                 setattr(job, k, v)
             session.add(job)
             session.commit()
+
+
+def _compute_job_totals(run_dir: Path, created_at: Optional[datetime],
+                         completed_at: Optional[datetime]) -> dict:
+    """Read usage.json from the run dir and produce DB-ready totals.
+
+    Returns a dict with keys:
+      - total_cost_usd (float or None)
+      - total_duration_seconds (int or None)
+      - cost_breakdown_json (str JSON or None)
+
+    Missing files / errors are non-fatal — we just return Nones for those bits.
+    Job completion never fails because cost computation hit a snag.
+    """
+    out = {
+        "total_cost_usd": None,
+        "total_duration_seconds": None,
+        "cost_breakdown_json": None,
+    }
+    # Duration: simple delta
+    if created_at and completed_at:
+        try:
+            seconds = (completed_at - created_at).total_seconds()
+            out["total_duration_seconds"] = int(max(0, seconds))
+        except Exception:
+            pass
+
+    # Cost: read usage.json, aggregate
+    usage_path = run_dir / "usage.json"
+    if usage_path.exists():
+        try:
+            usage_doc = json.loads(usage_path.read_text(encoding="utf-8"))
+            totals = aggregate_usage(usage_doc.get("calls") or [])
+            out["total_cost_usd"] = totals["total_usd"]
+            out["cost_breakdown_json"] = json.dumps(totals)
+        except Exception as exc:
+            print(f"[worker] non-fatal: could not aggregate usage: {exc}",
+                  file=sys.stderr)
+
+    return out
 
 
 def _extract_verdict_score(run_dir: Path) -> tuple[Optional[str], Optional[float]]:
@@ -1045,14 +1093,23 @@ async def resynthesize_job(job_id: str) -> None:
         # new one; tiers 2/3 reuse the existing one).
         # ----------------------------------------------------------------
         verdict, score = _extract_verdict_score(run_dir)
+        completed = datetime.utcnow()
+        # Compute cost + duration totals from usage.json (best-effort)
+        with Session(engine) as session:
+            job_for_created = session.get(Job, job_id)
+            created_at = job_for_created.created_at if job_for_created else None
+        totals = _compute_job_totals(run_dir, created_at, completed)
 
         _update_job(
             job_id,
             status="done",
             current_phase="render",
-            completed_at=datetime.utcnow(),
+            completed_at=completed,
             verdict=verdict,
             score=score,
+            total_cost_usd=totals["total_cost_usd"],
+            total_duration_seconds=totals["total_duration_seconds"],
+            cost_breakdown_json=totals["cost_breakdown_json"],
         )
 
     except asyncio.CancelledError:
@@ -1495,14 +1552,22 @@ async def run_job(job_id: str) -> None:
         # Job complete - extract verdict/score from executive.json
         # ----------------------------------------------------------------
         verdict, score = _extract_verdict_score(run_dir)
+        completed = datetime.utcnow()
+        with Session(engine) as session:
+            job_for_created = session.get(Job, job_id)
+            created_at = job_for_created.created_at if job_for_created else None
+        totals = _compute_job_totals(run_dir, created_at, completed)
 
         _update_job(
             job_id,
             status="done",
             current_phase="render",
-            completed_at=datetime.utcnow(),
+            completed_at=completed,
             verdict=verdict,
             score=score,
+            total_cost_usd=totals["total_cost_usd"],
+            total_duration_seconds=totals["total_duration_seconds"],
+            cost_breakdown_json=totals["cost_breakdown_json"],
         )
 
     except asyncio.CancelledError:
