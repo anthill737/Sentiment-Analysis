@@ -16,7 +16,7 @@ set "SCRIPT_DIR=!SCRIPT_DIR:~0,-1!"
 :: Computed paths
 set "SARUNNER_HOME=%LOCALAPPDATA%\sa-runner"
 set "VENV_DIR=!SARUNNER_HOME!\venv"
-set "PORT=8765"
+set "PORT=8770"
 set "SERVER_URL=http://127.0.0.1:!PORT!"
 
 echo.
@@ -54,7 +54,7 @@ if !errorlevel! neq 0 (
     exit /b 1
 )
 
-:: ─── Check whether port 8765 is already bound ────────────────────────────────
+:: ─── Check whether port 8770 is already bound ────────────────────────────────
 set "PORT_PID="
 for /f "tokens=5" %%P in ('netstat -ano 2^>nul ^| findstr /C:":!PORT! " ^| findstr "LISTENING"') do (
     if not defined PORT_PID set "PORT_PID=%%P"

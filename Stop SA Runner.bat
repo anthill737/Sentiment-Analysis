@@ -5,15 +5,15 @@ title SA Runner ^— Stopping...
 
 :: ─────────────────────────────────────────────────────────────────────────────
 :: SA Runner Stop Script
-:: Finds the uvicorn process bound to port 8765 and terminates it.
+:: Finds the uvicorn process bound to port 8770 and terminates it.
 :: ─────────────────────────────────────────────────────────────────────────────
 
-set "PORT=8765"
+set "PORT=8770"
 
 echo.
 echo [SA Runner] Stopping server on port !PORT! ...
 
-:: Find the PID listening on port 8765
+:: Find the PID listening on port 8770
 set "PORT_PID="
 for /f "tokens=5" %%P in ('netstat -ano 2^>nul ^| findstr /C:":!PORT! " ^| findstr "LISTENING"') do (
     if not defined PORT_PID set "PORT_PID=%%P"
