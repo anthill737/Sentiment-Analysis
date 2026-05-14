@@ -1,7 +1,75 @@
-
-# Added by Dev Team — protect environment files from being committed
+# ── Secrets & keys (defense-in-depth) ────────────────────────────────────────
+# The runtime stores all secrets in %LOCALAPPDATA%\sa-runner\ so these patterns
+# guard against accidental copies into the project tree.
+*.key
+*.pem
+*.p12
 .env
 .env.local
-.env.production
 .env.development
+.env.development.local
+.env.production
+.env.production.local
+.env.test
+.env.test.local
+.env.*
+!.env.example
+master.key
+secrets.json
+api_keys.json
+
+# ── Runtime data (never check in user data) ──────────────────────────────────
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+sa_runner.db
+runs/
+logs/
+
+# ── Generated artifacts ──────────────────────────────────────────────────────
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+*.egg-info/
+build/
+dist/
+!frontend/dist/
+
+# ── Sample / example artifacts ───────────────────────────────────────────────
+# Sample reports and synthesis outputs from past runs that shouldn't ship
+# with the source. Real reports live in %LOCALAPPDATA%\sa-runner\runs\.
+example_*.pdf
+example_*.docx
+example_*.json
+sample_*.pdf
+sample_*.docx
+sample_*.json
+
+# ── Frontend ─────────────────────────────────────────────────────────────────
+node_modules/
+frontend/node_modules/
+frontend/test-results/
+frontend/.vite/
+frontend/playwright-report/
+
+# ── Editor / OS noise ────────────────────────────────────────────────────────
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+
+# ── Local dev/test scratch ───────────────────────────────────────────────────
 .devteam/
+scratch/
+TODO.local.md
+NOTES.local.md
