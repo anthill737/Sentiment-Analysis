@@ -5,6 +5,13 @@
 *.pem
 *.p12
 .env
+.env.local
+.env.development
+.env.development.local
+.env.production
+.env.production.local
+.env.test
+.env.test.local
 .env.*
 !.env.example
 master.key
@@ -54,8 +61,3 @@ desktop.ini
 scratch/
 TODO.local.md
 NOTES.local.md
-
-# Added by Dev Team — protect environment files from being committed
-.env.local
-.env.production
-.env.development
